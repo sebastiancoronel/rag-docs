@@ -8,6 +8,3 @@ langchain-text-splitters
 chromadb
 python-dotenv
 pypdf
-mysql-connector-python
-fastapi
-uvicorn
