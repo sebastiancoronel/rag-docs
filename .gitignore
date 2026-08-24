@@ -1,0 +1,9 @@
+venv/
+.env
+vectordb_gratis/
+__pycache__/
+*.pyc
+.idea/
+.DS_Store
+vectordb_users/
+VIDEO/
