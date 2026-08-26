@@ -7,6 +7,6 @@ langchain-community
 langchain-chroma
 langchain-text-splitters
 chromadb
-rpds>=0.5.0
+rpds-py>=0.25.1
 python-dotenv
 pypdf
