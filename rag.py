@@ -2,9 +2,10 @@ import re
 import warnings
 
 import config
-from langchain_core.chains import create_stuff_documents_chain
-from langchain_core.chains.retrieval import create_retrieval_chain
+from langchain_core.documents import Document
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnableLambda
 from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -12,6 +13,31 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 warnings.filterwarnings('ignore')
 
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
+
+
+def _format_docs(docs: list[Document]) -> str:
+    return "\n\n".join(d.page_content for d in docs)
+
+
+def _create_stuff_documents_chain(llm, prompt):
+    """Create a chain that formats documents and queries the LLM. Expects {context, input}."""
+    return prompt | llm | StrOutputParser()
+
+
+def _create_retrieval_chain(retriever, chain):
+    """Create a retrieval chain compatible with original langchain API.
+
+    Input: {"input": question}
+    Output: {"answer": str, "context": list[Document]}
+    """
+    def _run(inputs: dict):
+        question = inputs.get("input", "") if isinstance(inputs, dict) else str(inputs)
+        docs = retriever.invoke(question)
+        context_str = _format_docs(docs)
+        answer = chain.invoke({"context": context_str, "input": question})
+        return {"answer": answer, "context": docs}
+
+    return RunnableLambda(_run)
 
 
 def build_llm(provider, api_key):
@@ -67,8 +93,8 @@ def prompt(texto):
 
 
 def respuesta(pregunta, llm, retriever, prompt):
-    chain = create_stuff_documents_chain(llm, prompt)
-    rag = create_retrieval_chain(retriever, chain)
+    chain = _create_stuff_documents_chain(llm, prompt)
+    rag = _create_retrieval_chain(retriever, chain)
     return rag.invoke({"input": pregunta})
 
 
