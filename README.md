@@ -1,6 +1,6 @@
-# RAGSeek — Probá RAG con tus propios documentos (Gemini/OpenAI + Streamlit)
+# RAG-Docs — Probá RAG con tus propios documentos (Gemini/OpenAI + Streamlit)
 
-Demo interactiva de un sistema RAG: subís tus propios **PDFs o textos**, los indexás y le hacés preguntas. La IA responde **únicamente con tu información**, citando de qué archivo salió cada cosa. Sin registro: elegís tu proveedor (Google Gemini u OpenAI) y usás tu propia API key.
+Aplicación web de Retrieval-Augmented Generation (RAG) que permite consultar documentos propios (PDF, TXT, MD) usando inteligencia artificial. Subís tus archivos y el sistema crea un asistente que responde preguntas basándose exclusivamente en su contenido, citando la fuente. Usa ChromaDB para almacenamiento vectorial, embeddings de Google Gemini/OpenAI y un pipeline de chunking semántico para recuperar contexto relevante. Desplegada en Streamlit Community Cloud con soporte multi-proveedor de LLM. Sin registro: elegís tu proveedor y usás tu propia API key.
 
 ## Arquitectura
 
@@ -107,7 +107,7 @@ Sube cualquier documento propio (un manual, un reglamento, un CV) y probá:
 ## Estructura del proyecto
 
 ```
-RAGSeek/
+RAG-Docs/
 ├── app.py               # UI Streamlit (proveedor, uploads, chat)
 ├── config.py            # PROVIDERS (modelos), límites de demo, prompt
 ├── rag.py               # Pipeline RAG (factories LLM/embeddings, retriever, chains)

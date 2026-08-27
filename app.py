@@ -5,7 +5,7 @@ import config
 import user_kb
 from rag import ai_with_sources, build_embeddings, get_user_retriever
 
-st.set_page_config(page_title="RAGSeek - Probá con tus propios datos", layout="wide")
+st.set_page_config(page_title="RAG-Docs - Probá con tus propios datos", layout="wide")
 
 
 # ---------------- Estado de sesión ----------------
