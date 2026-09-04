@@ -42,7 +42,7 @@ def _create_retrieval_chain(retriever, chain):
 
 def build_llm(provider, api_key):
     if provider not in config.PROVIDERS:
-        raise ValueError(f"Proveedor no soportado: {provider}")
+        raise ValueError(f"Unsupported provider: {provider}")
     p = config.PROVIDERS[provider]
     if provider == "gemini":
         return ChatGoogleGenerativeAI(
@@ -56,12 +56,12 @@ def build_llm(provider, api_key):
             temperature=0,
             api_key=api_key,
         )
-    raise ValueError(f"Proveedor no soportado: {provider}")
+    raise ValueError(f"Unsupported provider: {provider}")
 
 
 def build_embeddings(provider, api_key):
     if provider not in config.PROVIDERS:
-        raise ValueError(f"Proveedor no soportado: {provider}")
+        raise ValueError(f"Unsupported provider: {provider}")
     p = config.PROVIDERS[provider]
     if provider == "gemini":
         return GoogleGenerativeAIEmbeddings(
@@ -73,7 +73,7 @@ def build_embeddings(provider, api_key):
             model=p["embed_model"],
             api_key=api_key,
         )
-    raise ValueError(f"Proveedor no soportado: {provider}")
+    raise ValueError(f"Unsupported provider: {provider}")
 
 
 def get_user_retriever(namespace, provider, api_key, k=5):
@@ -102,13 +102,13 @@ def ai_with_sources(question, provider=config.DEFAULT_PROVIDER, api_key=None, re
     label = config.PROVIDERS.get(provider, {}).get("label", provider)
     if not api_key:
         return {
-            'answer': f'No se configuró la API key de {label}. Agregala en la barra lateral.',
+            'answer': f'No API key configured for {label}. Add it in the sidebar.',
             'sources': [],
         }
     if retriever is None:
         raise ValueError(
-            "Falta el retriever: la demo funciona con colecciones efímeras por usuario "
-            "(usá get_user_retriever(namespace, ...))."
+            "Missing retriever: the demo works with per-user ephemeral collections "
+            "(use get_user_retriever(namespace, ...))."
         )
     llm = build_llm(provider, api_key)
     response = respuesta(question, llm, retriever, prompt(config.texto))

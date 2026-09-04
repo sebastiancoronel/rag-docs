@@ -5,7 +5,7 @@ import config
 import user_kb
 from rag import ai_with_sources, build_embeddings, get_user_retriever
 
-st.set_page_config(page_title="RAG-Docs - Probá con tus propios datos", layout="wide")
+st.set_page_config(page_title="RAG-Docs - Try it with your own data", layout="wide")
 
 
 # ---------------- Estado de sesión ----------------
@@ -46,10 +46,10 @@ def reset_user_data(new_namespace=True):
 
 # ---------------- Sidebar ----------------
 with st.sidebar:
-    st.title("Configuración")
+    st.title("Configuration")
 
     provider = st.selectbox(
-        "Proveedor de IA",
+        "AI provider",
         options=list(config.PROVIDERS),
         format_func=lambda p: config.PROVIDERS[p]["label"],
         index=list(config.PROVIDERS).index(st.session_state.provider),
@@ -60,45 +60,45 @@ with st.sidebar:
         st.session_state.provider = provider
         if had_data:
             st.toast(
-                "Cambiaste de proveedor: los vectores eran incompatibles "
-                "y se borraron. Volvé a indexar tus documentos."
+                "You switched providers: the vectors were incompatible and were "
+                "deleted. Re-index your documents."
             )
 
     provider_info = config.PROVIDERS[st.session_state.provider]
     api_key = st.text_input(
-        f"API Key de {provider_info['label']}",
+        f"{provider_info['label']} API key",
         type="password",
     )
-    st.markdown(f"[Consigue tu API key gratis]({provider_info['key_url']})")
+    st.markdown(f"[Get a free API key]({provider_info['key_url']})")
 
     st.divider()
-    st.subheader("Tus documentos")
+    st.subheader("Your documents")
 
     uploaded_files = st.file_uploader(
-        "Sube archivos (PDF o texto)",
+        "Upload files (PDF or text)",
         type=["pdf", "txt", "md"],
         accept_multiple_files=True,
     )
-    pasted_text = st.text_area("…o pega tu texto aquí", height=120)
+    pasted_text = st.text_area("…or paste your text here", height=120)
 
-    if st.button("Indexar mis documentos", use_container_width=True):
+    if st.button("Index my documents", use_container_width=True):
         errors = []
         warnings_list = []
 
         if not api_key:
-            errors.append("Primero ingresá tu API key.")
+            errors.append("Enter your API key first.")
 
         files = uploaded_files or []
         if len(files) > config.MAX_FILES:
             errors.append(
-                f"Máximo {config.MAX_FILES} archivos por subida."
+                f"Maximum of {config.MAX_FILES} files per upload."
             )
         oversized = [
             f.name for f in files if f.size > config.MAX_FILE_MB * 1024 * 1024
         ]
         if oversized:
             errors.append(
-                f"Archivo(s) mayores a {config.MAX_FILE_MB} MB: "
+                f"File(s) larger than {config.MAX_FILE_MB} MB: "
                 f"{', '.join(oversized)}"
             )
 
@@ -115,8 +115,8 @@ with st.sidebar:
                     continue
                 if user_kb.detect_scanned(docs):
                     warnings_list.append(
-                        f"⚠️ `{f.name}` parece escaneado (contiene imágenes sin "
-                        "texto). Probá con un PDF de texto o pegá su contenido."
+                        f"⚠️ `{f.name}` looks scanned (it contains images with no "
+                        "text). Try a text PDF or paste its content."
                     )
                     continue
                 documents.extend(docs)
@@ -126,7 +126,7 @@ with st.sidebar:
             if pasted_text.strip():
                 documents.append(Document(
                     page_content=pasted_text.strip(),
-                    metadata={"FUENTE": "UPLOAD-texto_pegado"},
+                    metadata={"FUENTE": "UPLOAD-pasted_text"},
                 ))
                 new_chars += len(pasted_text.strip())
 
@@ -149,11 +149,11 @@ with st.sidebar:
             else:
                 st.session_state.files.extend(valid_files)
                 if pasted_text.strip():
-                    st.session_state.files.append("texto pegado")
+                    st.session_state.files.append("pasted text")
                 st.session_state.chunks += chunk_count
                 st.session_state.total_chars += new_chars
                 st.session_state.indexed = True
-                st.success(f"Listo: {chunk_count} fragmentos indexados.")
+                st.success(f"Done: {chunk_count} chunks indexed.")
                 for warning in warnings_list:
                     st.markdown(warning)
 
@@ -164,33 +164,33 @@ with st.sidebar:
                 st.markdown(warning)
 
     st.divider()
-    st.subheader("Estado de la sesión")
+    st.subheader("Session status")
     if st.session_state.indexed:
-        st.write(f"📄 Archivos: {len(st.session_state.files)}")
-        st.write(f"🧩 Fragmentos: {st.session_state.chunks}")
-        st.write(f"🔤 Caracteres: {st.session_state.total_chars:,}")
-        if st.button("🗑️ Borrar mis datos", use_container_width=True):
+        st.write(f"📄 Files: {len(st.session_state.files)}")
+        st.write(f"🧩 Chunks: {st.session_state.chunks}")
+        st.write(f"🔤 Characters: {st.session_state.total_chars:,}")
+        if st.button("🗑️ Delete my data", use_container_width=True):
             reset_user_data()
             st.rerun()
     else:
-        st.caption("Todavía no indexaste documentos.")
+        st.caption("You haven't indexed any documents yet.")
 
 # ---------------- Chat principal ----------------
-st.title("Probá el RAG con tus propios datos")
+st.title("Try RAG with your own data")
 st.caption(
-    "Subí PDFs o texto en la barra lateral, indexalos y preguntale lo que "
-    "quieras: responde únicamente con tu información, citando fuentes."
+    "Upload PDFs or text in the sidebar, index them and ask whatever you "
+    "want: it answers using only your information, citing sources."
 )
 
 if not st.session_state.indexed:
-    st.info("👈 Sube tus documentos y presiona **Indexar mis documentos** para empezar.")
+    st.info("👈 Upload your documents and press **Index my documents** to get started.")
 
 
 def render_message(msg):
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
         if msg["role"] == "assistant" and msg.get("sources"):
-            with st.expander("Ver fuentes"):
+            with st.expander("View sources"):
                 for src in msg["sources"]:
                     st.markdown(f"- `{src}`")
 
@@ -199,7 +199,7 @@ for msg in st.session_state.messages:
     render_message(msg)
 
 question = st.chat_input(
-    "Hacé tu pregunta sobre tus documentos...",
+    "Ask a question about your documents...",
     disabled=not st.session_state.indexed,
 )
 
@@ -212,15 +212,15 @@ if question:
             assistant_msg = {
                 "role": "assistant",
                 "content": (
-                    f"No se configuró la API key de "
+                    f"No API key configured for "
                     f"{config.PROVIDERS[st.session_state.provider]['label']}. "
-                    "Agregala en la barra lateral."
+                    "Add it in the sidebar."
                 ),
                 "sources": [],
             }
             st.warning(assistant_msg["content"])
         else:
-            with st.spinner("Buscando en tus documentos..."):
+            with st.spinner("Searching your documents..."):
                 try:
                     retriever = get_user_retriever(
                         st.session_state.namespace,
@@ -240,7 +240,7 @@ if question:
                     }
                     st.markdown(result["answer"])
                     if result["sources"]:
-                        with st.expander("Ver fuentes"):
+                        with st.expander("View sources"):
                             for src in result["sources"]:
                                 st.markdown(f"- `{src}`")
                 except Exception as exc:
@@ -251,16 +251,16 @@ if question:
                         "unauthorized", "invalid_api_key",
                     )):
                         friendly = (
-                            "Tu API key parece inválida o sin permisos. "
-                            "Revisala en la barra lateral."
+                            "Your API key looks invalid or lacks permissions. "
+                            "Check it in the sidebar."
                         )
                     elif "429" in lowered or "quota" in lowered or "rate" in lowered:
                         friendly = (
-                            "Se alcanzó el límite de uso de tu API key. "
-                            "Esperá un momento e intentá de nuevo."
+                            "Your API key has reached its usage limit. "
+                            "Wait a moment and try again."
                         )
                     else:
-                        friendly = f"Ocurrió un error: {message}"
+                        friendly = f"An error occurred: {message}"
                     st.error(friendly)
                     assistant_msg = {
                         "role": "assistant",

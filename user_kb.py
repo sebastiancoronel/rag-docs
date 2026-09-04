@@ -63,7 +63,7 @@ def parse_upload(filename, data):
             text = data.decode("latin-1")
         docs = [Document(page_content=text)]
     else:
-        raise ValueError(f"Formato no soportado: {suffix} (usá PDF, TXT o MD)")
+        raise ValueError(f"Unsupported format: {suffix} (use PDF, TXT or MD)")
 
     for doc in docs:
         doc.metadata["FUENTE"] = fuente
@@ -78,17 +78,17 @@ def detect_scanned(docs):
 def check_quota(current_files, new_files, current_chars, new_chars):
     """Valida los límites acumulados de la sesión. Lanza QuotaExceeded."""
     if new_files <= 0 and new_chars <= 0:
-        raise ValueError("No hay contenido para indexar.")
+        raise ValueError("There is no content to index.")
     if current_files + new_files > config.MAX_FILES:
         raise QuotaExceeded(
-            f"Máximo {config.MAX_FILES} archivos por sesión "
-            f"(ya indexaste {current_files})."
+            f"Maximum of {config.MAX_FILES} files per session "
+            f"(you already indexed {current_files})."
         )
     if current_chars + new_chars > config.MAX_TOTAL_CHARS:
         disponible = config.MAX_TOTAL_CHARS - current_chars
         raise QuotaExceeded(
-            f"Límite de {config.MAX_TOTAL_CHARS} caracteres por sesión superado "
-            f"(quedan {max(disponible, 0)} disponibles)."
+            f"Session limit of {config.MAX_TOTAL_CHARS} characters exceeded "
+            f"({max(disponible, 0)} remaining)."
         )
 
 
@@ -115,7 +115,7 @@ def index_user_docs(namespace, documents, embeddings):
     """
     splits = text_splitter.split_documents(documents)
     if not splits:
-        raise ValueError("El contenido quedó vacío después de procesarlo.")
+        raise ValueError("The content was empty after processing.")
 
     for split in splits:
         fuente = (split.metadata or {}).get("FUENTE")
